@@ -213,8 +213,7 @@ def main(file_path):
 
         print(f"Analysis completed successfully. Results saved in {README_FILENAME}.")
     except Exception as e:
-        print(f"An error occurred: {e}
-", file=sys.stderr)
+        print(f"An error occurred: {e}", file=sys.stderr)
 
 # Run the script if executed directly
 if __name__ == "__main__":
