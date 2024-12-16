@@ -26,6 +26,7 @@ import sys
 PROXY_URL = "http://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
 README_FILENAME = "README.md"
 
+
 def analyze_csv(file_path):
     """Load and perform basic analysis on a CSV file."""
     try:
@@ -82,6 +83,7 @@ def perform_advanced_analysis(data):
 
     return results
 
+
 def send_to_llm(context, findings):
     """Send data summary and findings to the AI Proxy for insights and conclusion."""
     headers = {
@@ -97,7 +99,7 @@ The dataset contains {context['num_rows']} rows and {context['num_columns']} col
 
 ### Analysis Conducted ###
 Basic analysis includes:
-- Summary Statistics: {context['summary_statistics']}.
+- Summary Statistics (mean, median, variance): { {k: {stat: context['summary_statistics'][k][stat] for stat in ['mean', '50%', 'std'] if stat in context['summary_statistics'][k]} for k in context['summary_statistics']} }.
 - Missing Values: {context['missing_values']}.
 
 Advanced analysis includes:
@@ -106,11 +108,15 @@ Advanced analysis includes:
 - Regression Coefficients: {findings.get('regression_coefficients', 'Regression analysis not performed')}.
 
 ### Instructions ###
-Write a story about:
-1. The data received.
-2. The analysis carried out.
-3. The insights discovered.
-4. Implications of the findings and suggested next steps.
+Write a story that deeply analyzes:
+1. The data received, its key characteristics, and unique features.
+2. The analysis carried out, focusing on the methods and their relevance.
+3. The insights discovered, with emphasis on patterns, anomalies, or correlations that stand out.
+4. The implications of the findings, explaining their significance in practical, business, or scientific contexts.
+5. Suggestions for next steps or actions that can be taken based on these findings.
+6. Additional future analyses that could be conducted to gain further insights into the dataset.
+
+If significant outliers are detected, discuss potential causes and implications. If clustering results are provided, interpret the clusters and suggest possible real-world applications.
 """
 
     def make_request(prompt):
@@ -172,6 +178,7 @@ def create_visualizations(data):
 
     return visualizations
 
+
 def generate_readme(story, visualizations):
     with open(README_FILENAME, "w") as f:
         f.write("# Dataset Analysis Report\n\n")
@@ -180,27 +187,34 @@ def generate_readme(story, visualizations):
         f.write("## 2. Visualizations\n")
         for vis in visualizations:
             f.write(f"![{os.path.splitext(vis)[0]}]({vis})\n")
+        f.write("\n## 3. Suggested Future Analyses\n")
+        f.write("1. Investigate the underlying causes of detected outliers.\n")
+        f.write("2. Explore the relationships between clusters and domain-specific labels.\n")
+        f.write("3. Conduct feature importance analysis to assess drivers of key outcomes.\n")
+        f.write("4. Perform time-series analysis if applicable for detecting trends over time.\n")
+
 
 def main(file_path):
     try:
         # Step 1: Analyze CSV
         data, basic_results = analyze_csv(file_path)
-        
+
         # Step 2: Perform Advanced Analysis
         advanced_results = perform_advanced_analysis(data)
-        
+
         # Step 3: Send Summary to LLM
         story = send_to_llm(basic_results, advanced_results)
-        
+
         # Step 4: Create Visualizations
         visualizations = create_visualizations(data)
-        
+
         # Step 5: Generate README Report
         generate_readme(story, visualizations)
-        
+
         print(f"Analysis completed successfully. Results saved in {README_FILENAME}.")
     except Exception as e:
-        print(f"An error occurred: {e}", file=sys.stderr)
+        print(f"An error occurred: {e}
+", file=sys.stderr)
 
 # Run the script if executed directly
 if __name__ == "__main__":
