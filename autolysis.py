@@ -118,47 +118,6 @@ Write a story about:
     story = make_request(prompt)
     return story
 
-def optimize_image(image_path):
-    """Optimize the image size to ensure it is under 100 KB."""
-    img = Image.open(image_path)
-    quality = 85  # Initialize the quality variable
-    img.save(image_path, format="PNG", optimize=True, quality=quality)
-    
-    while os.path.getsize(image_path) > 100 * 1024:  # 100 KB
-        quality = max(10, int(0.9 * quality))  # Decrease the quality
-        img.save(image_path, format="PNG", optimize=True, quality=quality)
-
-
-def send_image_to_llm(image_path):
-    """Send an image to the LLM for additional insights."""
-    optimize_image(image_path)
-
-    headers = {
-        "Authorization": f"Bearer {os.environ.get('AIPROXY_TOKEN')}",
-        "Content-Type": "application/json",
-    }
-
-    with open(image_path, "rb") as img_file:
-        encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
-
-    prompt = f"""
-You are analyzing visual data from a dataset analysis.
-
-### Instruction ###
-The following image contains visual insights generated from data analysis. Provide insights or observations based on the image provided.
-"""
-
-    payload = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {"role": "system", "content": "You are an AI data analyst."},
-            {"role": "user", "content": prompt},
-            {"role": "user", "content": f"Image data (base64-encoded): {encoded_image}"}
-        ],
-    }
-    response = requests.post(PROXY_URL, headers=headers, json=payload)
-    response.raise_for_status()  # Raise error if the request fails
-    return response.json()["choices"][0]["message"]["content"]
 
 def create_visualizations(data):
     visualizations = []
@@ -210,8 +169,6 @@ def generate_readme(story, visualizations):
         f.write("## 2. Visualizations\n")
         for vis in visualizations:
             f.write(f"![{os.path.splitext(vis)[0]}]({vis})\n")
-            insights = send_image_to_llm(vis)
-            f.write(f"\n### Insights from the visualization:\n{insights}\n\n")
 
 def main(file_path):
     try:
